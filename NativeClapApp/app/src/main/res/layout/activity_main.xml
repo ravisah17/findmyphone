@@ -10,7 +10,7 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Native Clap Shield"
+        android:text="Find My Phone"
         android:textSize="28sp"
         android:textStyle="bold"
         android:textColor="#333333"
@@ -70,5 +70,23 @@
         android:paddingHorizontal="32dp"
         android:paddingVertical="12dp"
         android:visibility="gone" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Developed by Ravi Sah"
+        android:textSize="14sp"
+        android:textColor="#95a5a6"
+        android:layout_marginTop="32dp" />
+
+    <TextView
+        android:id="@+id/tvWebsite"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="https://ravisah.in"
+        android:textSize="14sp"
+        android:textColor="#3498db"
+        android:autoLink="web"
+        android:layout_marginTop="4dp" />
 
 </LinearLayout>

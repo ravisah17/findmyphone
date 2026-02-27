@@ -182,7 +182,7 @@ class ClapService : Service() {
             }
 
         return NotificationCompat.Builder(this, CHANNEL_ID)
-            .setContentTitle("Native Clap Shield")
+            .setContentTitle("Find My Phone")
             .setContentText(bodyText)
             .setSmallIcon(android.R.drawable.ic_lock_idle_alarm)
             .setContentIntent(pendingIntent)

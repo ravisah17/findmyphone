@@ -29,7 +29,7 @@ class ClapService : Service() {
     private val channelConfig = AudioFormat.CHANNEL_IN_MONO
     private val audioFormat = AudioFormat.ENCODING_PCM_16BIT
     private val bufferSize = AudioRecord.getMinBufferSize(sampleRate, channelConfig, audioFormat)
-    private val CLAP_THRESHOLD_DB = 82.0 // Increased to prevent false positives
+    private val CLAP_THRESHOLD_DB = 88.0 // Increased to prevent false positives
 
     private val stopAlarmReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {

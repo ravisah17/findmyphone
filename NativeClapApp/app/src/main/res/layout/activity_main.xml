@@ -35,17 +35,24 @@
         android:textStyle="bold"
         android:layout_marginBottom="32dp"/>
 
-    <Button
-        android:id="@+id/btnToggle"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Start Service"
-        android:backgroundTint="#2ecc71"
-        android:textColor="#FFFFFF"
-        android:textSize="18sp"
-        android:paddingHorizontal="32dp"
-        android:paddingVertical="12dp"
-        android:layout_marginBottom="16dp" />
+    <FrameLayout
+        android:id="@+id/btnToggleContainer"
+        android:layout_width="200dp"
+        android:layout_height="200dp"
+        android:background="@drawable/circle_button_off"
+        android:layout_marginBottom="32dp">
+
+        <TextView
+            android:id="@+id/tvToggleText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:text="START"
+            android:textSize="28sp"
+            android:textStyle="bold"
+            android:textColor="#FFFFFF" />
+
+    </FrameLayout>
         
     <Button
         android:id="@+id/btnSelectAlarm"

@@ -4,15 +4,24 @@
   "main": "index.js",
   "scripts": {
     "start": "expo start",
-    "android": "expo start --android",
-    "ios": "expo start --ios",
+    "android": "expo run:android",
+    "ios": "expo run:ios",
     "web": "expo start --web"
   },
   "dependencies": {
+    "@notifee/react-native": "^9.1.8",
     "expo": "~55.0.3",
+    "expo-av": "^16.0.8",
+    "expo-background-fetch": "~55.0.8",
+    "expo-brightness": "~55.0.8",
+    "expo-build-properties": "~55.0.9",
+    "expo-keep-awake": "~55.0.4",
     "expo-status-bar": "~55.0.4",
+    "expo-task-manager": "~55.0.9",
     "react": "19.2.0",
-    "react-native": "0.83.2"
+    "react-native": "0.83.2",
+    "react-native-background-actions": "3.0.0",
+    "react-native-background-timer": "^2.4.1"
   },
   "private": true
 }

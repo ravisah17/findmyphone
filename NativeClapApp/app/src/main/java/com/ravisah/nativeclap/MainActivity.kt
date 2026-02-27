@@ -17,7 +17,8 @@ import androidx.core.content.ContextCompat
 
 class MainActivity : AppCompatActivity() {
 
-    private lateinit var btnToggle: Button
+    private lateinit var btnToggleContainer: android.widget.FrameLayout
+    private lateinit var tvToggleText: TextView
     private lateinit var btnStopAlarm: Button
     private lateinit var btnSelectAlarm: Button
     private lateinit var tvStatus: TextView
@@ -52,7 +53,8 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         tvStatus = findViewById(R.id.tvStatus)
-        btnToggle = findViewById(R.id.btnToggle)
+        btnToggleContainer = findViewById(R.id.btnToggleContainer)
+        tvToggleText = findViewById(R.id.tvToggleText)
         btnStopAlarm = findViewById(R.id.btnStopAlarm)
         btnSelectAlarm = findViewById(R.id.btnSelectAlarm)
 
@@ -66,7 +68,7 @@ class MainActivity : AppCompatActivity() {
             pickRingtoneLauncher.launch(intent)
         }
 
-        btnToggle.setOnClickListener {
+        btnToggleContainer.setOnClickListener {
             if (isServiceRunning) {
                 stopClapService()
             } else {
@@ -108,7 +110,8 @@ class MainActivity : AppCompatActivity() {
         }
         isServiceRunning = true
         tvStatus.text = "Status: Shield Active \uD83D\uDEE1\uFE0F\uD83D\uDC42"
-        btnToggle.text = "Stop Service"
+        btnToggleContainer.setBackgroundResource(R.drawable.circle_button_on)
+        tvToggleText.text = "STOP"
     }
 
     private fun stopClapService() {
@@ -116,7 +119,8 @@ class MainActivity : AppCompatActivity() {
         stopService(intent)
         isServiceRunning = false
         tvStatus.text = "Status: Inactive \uD83D\uDE34"
-        btnToggle.text = "Start Service"
+        btnToggleContainer.setBackgroundResource(R.drawable.circle_button_off)
+        tvToggleText.text = "START"
         btnStopAlarm.visibility = Button.GONE
     }
 }

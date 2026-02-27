@@ -48,6 +48,18 @@
         android:layout_marginBottom="16dp" />
         
     <Button
+        android:id="@+id/btnSelectAlarm"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Select Custom Alarm"
+        android:backgroundTint="#9b59b6"
+        android:textColor="#FFFFFF"
+        android:textSize="16sp"
+        android:paddingHorizontal="32dp"
+        android:paddingVertical="12dp"
+        android:layout_marginBottom="16dp" />
+
+    <Button
         android:id="@+id/btnStopAlarm"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"

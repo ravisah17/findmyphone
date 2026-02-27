@@ -7,6 +7,10 @@ import android.os.Build
 import android.os.Bundle
 import android.widget.Button
 import android.widget.TextView
+import android.app.Activity
+import android.media.RingtoneManager
+import android.net.Uri
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -15,15 +19,32 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var btnToggle: Button
     private lateinit var btnStopAlarm: Button
+    private lateinit var btnSelectAlarm: Button
     private lateinit var tvStatus: TextView
     private var isServiceRunning = false
 
+    private val pickRingtoneLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            val uri = result.data?.getParcelableExtra<Uri>(RingtoneManager.EXTRA_RINGTONE_PICKED_URI)
+            if (uri != null) {
+                val prefs = getSharedPreferences("NativeClapPrefs", Context.MODE_PRIVATE)
+                prefs.edit().putString("alarmUri", uri.toString()).apply()
+            }
+        }
+    }
+
     override fun onResume() {
         super.onResume()
-        // Stop the alarm when the user opens the app
-        val intent = Intent("com.ravisah.nativeclap.STOP_ALARM")
-        sendBroadcast(intent)
-        btnStopAlarm.visibility = Button.GONE
+        // Stop the alarm when the user opens the app (Guaranteed Android 14 delivery)
+        if (isServiceRunning) {
+            val intent = Intent(this, ClapService::class.java)
+            intent.putExtra("ACTION", "STOP_ALARM")
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                startForegroundService(intent)
+            } else {
+                startService(intent)
+            }
+        }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -33,8 +54,17 @@ class MainActivity : AppCompatActivity() {
         tvStatus = findViewById(R.id.tvStatus)
         btnToggle = findViewById(R.id.btnToggle)
         btnStopAlarm = findViewById(R.id.btnStopAlarm)
+        btnSelectAlarm = findViewById(R.id.btnSelectAlarm)
 
         checkPermissions()
+
+        btnSelectAlarm.setOnClickListener {
+            val intent = Intent(RingtoneManager.ACTION_RINGTONE_PICKER)
+            intent.putExtra(RingtoneManager.EXTRA_RINGTONE_TYPE, RingtoneManager.TYPE_ALARM or RingtoneManager.TYPE_RINGTONE)
+            intent.putExtra(RingtoneManager.EXTRA_RINGTONE_SHOW_DEFAULT, true)
+            intent.putExtra(RingtoneManager.EXTRA_RINGTONE_SHOW_SILENT, false)
+            pickRingtoneLauncher.launch(intent)
+        }
 
         btnToggle.setOnClickListener {
             if (isServiceRunning) {

@@ -52,20 +52,9 @@ class ClapService : Service() {
         }
     }
 
-    private val stopAlarmReceiver = object : BroadcastReceiver() {
-        override fun onReceive(context: Context?, intent: Intent?) {
-            stopAlarm()
-        }
-    }
-
     override fun onCreate() {
         super.onCreate()
         createNotificationChannel()
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            registerReceiver(stopAlarmReceiver, IntentFilter("com.ravisah.nativeclap.STOP_ALARM"), RECEIVER_NOT_EXPORTED)
-        } else {
-            registerReceiver(stopAlarmReceiver, IntentFilter("com.ravisah.nativeclap.STOP_ALARM"))
-        }
         
         registerReceiver(screenOffReceiver, IntentFilter(Intent.ACTION_SCREEN_OFF))
 
@@ -82,6 +71,10 @@ class ClapService : Service() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        if (intent?.getStringExtra("ACTION") == "STOP_ALARM") {
+            stopAlarm()
+            return START_STICKY
+        }
         startForeground(1, createNotification("Listening for claps..."))
         startListening()
         return START_STICKY
@@ -146,7 +139,18 @@ class ClapService : Service() {
         val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         notificationManager.notify(1, createNotification("🚨 ALARM RINGING! 🚨"))
 
-        mediaPlayer = MediaPlayer.create(this, R.raw.alarm)
+        val prefs = getSharedPreferences("NativeClapPrefs", Context.MODE_PRIVATE)
+        val uriString = prefs.getString("alarmUri", null)
+        
+        if (uriString != null) {
+            try {
+                mediaPlayer = MediaPlayer.create(this, android.net.Uri.parse(uriString))
+            } catch (e: Exception) {}
+        }
+        if (mediaPlayer == null) {
+            mediaPlayer = MediaPlayer.create(this, R.raw.alarm)
+        }
+        
         mediaPlayer?.isLooping = true
         mediaPlayer?.start()
     }
@@ -209,7 +213,6 @@ class ClapService : Service() {
             }
         } catch (e: Exception) {}
         mediaPlayer?.release()
-        unregisterReceiver(stopAlarmReceiver)
         unregisterReceiver(screenOffReceiver)
         
         val audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager

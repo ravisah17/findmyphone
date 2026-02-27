@@ -18,6 +18,14 @@ class MainActivity : AppCompatActivity() {
     private lateinit var tvStatus: TextView
     private var isServiceRunning = false
 
+    override fun onResume() {
+        super.onResume()
+        // Stop the alarm when the user opens the app
+        val intent = Intent("com.ravisah.nativeclap.STOP_ALARM")
+        sendBroadcast(intent)
+        btnStopAlarm.visibility = Button.GONE
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)

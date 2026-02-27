@@ -31,6 +31,17 @@ class ClapService : Service() {
     private val bufferSize = AudioRecord.getMinBufferSize(sampleRate, channelConfig, audioFormat)
     private val CLAP_THRESHOLD_DB = 88.0 // Increased to prevent false positives
 
+    private var muteUntil: Long = 0
+
+    private val screenOffReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            if (intent?.action == Intent.ACTION_SCREEN_OFF) {
+                // Mute for 1.5 seconds when screen locks to avoid physical button click noise
+                muteUntil = System.currentTimeMillis() + 1500
+            }
+        }
+    }
+
     private val stopAlarmReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
             stopAlarm()
@@ -45,6 +56,8 @@ class ClapService : Service() {
         } else {
             registerReceiver(stopAlarmReceiver, IntentFilter("com.ravisah.nativeclap.STOP_ALARM"))
         }
+        
+        registerReceiver(screenOffReceiver, IntentFilter(Intent.ACTION_SCREEN_OFF))
 
         val powerManager = getSystemService(Context.POWER_SERVICE) as PowerManager
         wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "NativeClapApp::MicWakeLock")
@@ -83,6 +96,11 @@ class ClapService : Service() {
                     if (System.currentTimeMillis() - startTime < 1500) {
                         continue
                     }
+                    
+                    // Ignore claps for 1.5 seconds immediately after the screen is locked
+                    if (System.currentTimeMillis() < muteUntil) {
+                        continue
+                    }
 
                     var maxAmplitude = 0
                     for (i in 0 until readResult) {
@@ -117,7 +135,11 @@ class ClapService : Service() {
     }
 
     private fun stopAlarm() {
-        mediaPlayer?.stop()
+        try {
+            if (mediaPlayer?.isPlaying == true) {
+                mediaPlayer?.stop()
+            }
+        } catch (e: Exception) {}
         mediaPlayer?.release()
         mediaPlayer = null
         
@@ -164,9 +186,14 @@ class ClapService : Service() {
         isListening = false
         audioRecord?.stop()
         audioRecord?.release()
-        mediaPlayer?.stop()
+        try {
+            if (mediaPlayer?.isPlaying == true) {
+                mediaPlayer?.stop()
+            }
+        } catch (e: Exception) {}
         mediaPlayer?.release()
         unregisterReceiver(stopAlarmReceiver)
+        unregisterReceiver(screenOffReceiver)
         if (wakeLock?.isHeld == true) {
             wakeLock?.release()
         }

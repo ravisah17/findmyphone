@@ -29,7 +29,7 @@ class ClapService : Service() {
     private val channelConfig = AudioFormat.CHANNEL_IN_MONO
     private val audioFormat = AudioFormat.ENCODING_PCM_16BIT
     private val bufferSize = AudioRecord.getMinBufferSize(sampleRate, channelConfig, audioFormat)
-    private val CLAP_THRESHOLD_DB = 70.0 // Adjusted for PCM 16-bit
+    private val CLAP_THRESHOLD_DB = 82.0 // Increased to prevent false positives
 
     private val stopAlarmReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
@@ -71,11 +71,19 @@ class ClapService : Service() {
         audioRecord?.startRecording()
         isListening = true
 
+        val startTime = System.currentTimeMillis()
+
         listenThread = Thread {
             val buffer = ShortArray(bufferSize)
             while (isListening) {
                 val readResult = audioRecord?.read(buffer, 0, bufferSize) ?: 0
                 if (readResult > 0 && mediaPlayer?.isPlaying != true) {
+                    
+                    // Ignore the first 1.5 seconds to avoid detecting the physical "Start Service" button tap
+                    if (System.currentTimeMillis() - startTime < 1500) {
+                        continue
+                    }
+
                     var maxAmplitude = 0
                     for (i in 0 until readResult) {
                         if (Math.abs(buffer[i].toInt()) > maxAmplitude) {

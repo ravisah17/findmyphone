@@ -7,6 +7,7 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.media.AudioFormat
 import android.media.AudioRecord
+import android.media.AudioManager
 import android.media.MediaPlayer
 import android.media.MediaRecorder
 import android.os.Build
@@ -36,9 +37,18 @@ class ClapService : Service() {
     private val screenOffReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
             if (intent?.action == Intent.ACTION_SCREEN_OFF) {
-                // Mute for 1.5 seconds when screen locks to avoid physical button click noise
-                muteUntil = System.currentTimeMillis() + 1500
+                // Mute for 3 seconds when screen locks to avoid physical button click noise completely
+                muteUntil = System.currentTimeMillis() + 3000
             }
+        }
+    }
+
+    private val audioFocusChangeListener = AudioManager.OnAudioFocusChangeListener { focusChange ->
+        if (focusChange == AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK || 
+            focusChange == AudioManager.AUDIOFOCUS_LOSS_TRANSIENT ||
+            focusChange == AudioManager.AUDIOFOCUS_LOSS) {
+            // Mute the mic for 3 seconds when a system notification plays (like a text message)
+            muteUntil = System.currentTimeMillis() + 3000
         }
     }
 
@@ -58,6 +68,13 @@ class ClapService : Service() {
         }
         
         registerReceiver(screenOffReceiver, IntentFilter(Intent.ACTION_SCREEN_OFF))
+
+        val audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager
+        audioManager.requestAudioFocus(
+            audioFocusChangeListener,
+            AudioManager.STREAM_MUSIC,
+            AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK
+        )
 
         val powerManager = getSystemService(Context.POWER_SERVICE) as PowerManager
         wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "NativeClapApp::MicWakeLock")
@@ -92,12 +109,12 @@ class ClapService : Service() {
                 val readResult = audioRecord?.read(buffer, 0, bufferSize) ?: 0
                 if (readResult > 0 && mediaPlayer?.isPlaying != true) {
                     
-                    // Ignore the first 1.5 seconds to avoid detecting the physical "Start Service" button tap
-                    if (System.currentTimeMillis() - startTime < 1500) {
+                    // Ignore the first 3 seconds to avoid detecting the physical "Start Service" button tap
+                    if (System.currentTimeMillis() - startTime < 3000) {
                         continue
                     }
                     
-                    // Ignore claps for 1.5 seconds immediately after the screen is locked
+                    // Ignore claps for 3 seconds immediately after the screen is locked, or a notification plays
                     if (System.currentTimeMillis() < muteUntil) {
                         continue
                     }
@@ -194,6 +211,10 @@ class ClapService : Service() {
         mediaPlayer?.release()
         unregisterReceiver(stopAlarmReceiver)
         unregisterReceiver(screenOffReceiver)
+        
+        val audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager
+        audioManager.abandonAudioFocus(audioFocusChangeListener)
+
         if (wakeLock?.isHeld == true) {
             wakeLock?.release()
         }
